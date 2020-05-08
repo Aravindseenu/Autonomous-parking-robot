@@ -1,0 +1,280 @@
+
+
+#include <Servo.h>
+// motor controls
+int Forward = 2; // Arduino PWM output pin 5; connect to IBT-2 pin 1 (RPWM)
+int Backward = 3; // Arduino PWM output pin 6; connect to IBT-2 pin 2 (LPWM)
+//steering servo 
+Servo steer;
+char command; 
+int val;
+
+#include <Ultrasonic.h>
+Ultrasonic ultrasonic2(5, 4),ultrasonic1(7, 6),ultrasonic3(10, 11),ultrasonic4(12, 13);
+#define width 20 // Width of the car (cm)
+#define length_l 40 // length of the car (cm)
+int previous_state = 0;
+long front_sensor,right_front_sensor,right_back_sensor,back_sensor;
+
+void setup() 
+{       
+  pinMode(Forward, OUTPUT);
+  pinMode(Backward, OUTPUT);
+  analogWrite(Forward, 0);
+  analogWrite(Backward, 0);
+  steer.attach(9);  // attaches the servo on pin 9 to the servo object
+  steer.write(77);
+  Serial.begin(9600);
+  Serial3.begin(9600);// 
+}
+
+void loop(){
+
+  front_sensor       = ultrasonic1.read();
+  right_front_sensor = ultrasonic2.read();
+  right_back_sensor  = ultrasonic3.read();
+  back_sensor        = ultrasonic4.read();
+  if(Serial3.available() > 0){ 
+    command = Serial3.read();
+    Stop(); //initialize with motors stoped
+    //Change pin mode only if new command is different from previous. 
+    park();
+    //Serial.println(command);
+    switch(command){
+    case 'F':  
+      forward();
+      break;
+    case 'B':  
+       back();
+      break;
+    case 'L':  
+      left();
+      break;
+    case 'R':
+      right();
+      break;
+    case 'G':  
+      forward_left();
+      break;
+    case 'I':  
+      forward_right();
+      break;
+    case 'H':  
+      back_left();
+      break;
+    case 'J':
+      back_right();
+      break;
+          case '0':
+        val = 30;
+        break;
+      case '1':
+        val = 40;
+        break;
+      case '2':
+        val = 60;
+        break;
+      case '3':
+        val = 80;
+        break;
+      case '4':
+        val = 110;
+        break;
+      case '5':
+        val = 130;
+        break;
+      case '6':
+        val = 150;
+        break;
+      case '7':
+        val = 170;
+        break;
+      case '8':
+        val = 190;
+        break;
+      case '9':
+        val = 220;
+        break;
+      case 'q':
+        val = 240;
+        break;
+        case 'X':
+        straight_park();
+        break;
+        case 'W':
+        parallel_park();
+        break;         
+    }    
+  } 
+}
+void park() {
+if((right_front_sensor <= width)&&(right_back_sensor <= width)&&(previous_state == 0)&&( command == 'U'))
+   {
+    forward();
+    previous_state = 1; 
+     Serial.println("1");
+   
+if ((right_front_sensor > width)&&(right_back_sensor > width)&&(previous_state == 1))
+    {
+    forward();
+    previous_state = 2; 
+     Serial.println("2");
+    
+if ((right_front_sensor <= width) && (right_back_sensor <= width) && (previous_state == 2))
+   {
+   Stop(); 
+   delay(1000);
+   straight_park();
+   previous_state = 0; 
+    Serial.println("3");
+   }}}
+}
+void forward()
+{
+steer.write(77); 
+analogWrite(Backward, 0);
+analogWrite(Forward, val);
+//Serial.println(val);
+//Serial.println("Forward");
+}
+
+void back()
+{
+steer.write(77); 
+analogWrite(Forward, 0);
+analogWrite(Backward, val);
+//Serial.println("back");
+}
+
+void left()
+{
+steer.write(45);
+analogWrite(Backward, 0);
+analogWrite(Forward, 0);
+
+//Serial.println("left");
+}
+
+void right()
+{
+ steer.write(120);
+analogWrite(Backward, 0);
+analogWrite(Forward, 0);
+
+//Serial.println("right");
+} 
+
+void forward_left()
+{
+steer.write(45);
+analogWrite(Backward, 0);
+analogWrite(Forward, val);
+
+//Serial.println("left");
+}
+
+void forward_right()
+{
+steer.write(120);
+analogWrite(Backward, 0);
+analogWrite(Forward, val);
+
+//Serial.println("right");
+} 
+
+void back_left()
+{
+steer.write(45);
+analogWrite(Forward, 0);
+analogWrite(Backward, val);
+
+//Serial.println("left");
+}
+
+void back_right()
+{
+steer.write(120);
+analogWrite(Forward, 0);
+analogWrite(Backward, val);
+
+//Serial.println("right");
+}
+
+void Stop()
+{
+ steer.write(77); 
+ analogWrite(Forward, 0);
+analogWrite(Backward, 0);
+}
+void parallel_park()
+  { 
+    steer.write(120);
+    delay(1000);
+    analogWrite(Backward, 20);
+    delay(800);
+    steer.write(50);
+    analogWrite(Backward, 0);
+    delay(500);
+    //10steer.write(50);
+    analogWrite(Backward, 20);
+    delay(500);
+    analogWrite(Backward, 0);
+    steer.write(120);
+    delay(500);
+    analogWrite(Forward, 22);
+    delay(500);
+    analogWrite(Forward, 0);
+    steer.write(50);
+    delay(1000);
+    analogWrite(Forward, 0);
+    analogWrite(Backward, 20);
+    delay(300);
+    analogWrite(Backward, 0);
+    steer.write(100);
+    delay(1000);
+    analogWrite(Forward, 20);
+    delay(500);
+    analogWrite(Forward, 0);
+    steer.write(80);
+    }
+
+
+void straight_park()
+{ 
+    steer.write(77);
+    delay(1100);
+    analogWrite(Backward, 30);
+    delay(700);
+    analogWrite(Backward, 0);
+    steer.write(120);
+    delay(1100);
+    analogWrite(Backward, 30);
+    delay(700);
+    analogWrite(Backward, 0);
+    
+    steer.write(40);
+    delay(1000);
+    analogWrite(Forward, 35);
+    delay(1000);
+    analogWrite(Forward, 0);
+    
+    steer.write(120);
+    delay(1000);
+    analogWrite(Backward, 30);
+    delay(1000);
+    analogWrite(Backward, 0);
+    steer.write(80);
+
+     steer.write(40);
+    delay(1000);
+    analogWrite(Forward, 35);
+    delay(1000);
+    analogWrite(Forward, 0);
+
+     steer.write(120);
+    delay(1000);
+    analogWrite(Backward, 30);
+    delay(1500);
+    analogWrite(Backward, 0);
+    steer.write(80);
+}
