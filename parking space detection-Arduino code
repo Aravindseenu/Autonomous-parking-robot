@@ -1,3 +1,7 @@
+/******************Autonomous parking code ********************/
+/********************coded by Aravind AK***********************/
+/****supported by Rahul_R Jaswanth_I ID_Samueal Gautam_Raj*****/
+
 #include <Servo.h>
 // motor controls
 int Forward = 2; // Arduino PWM output pin 5; connect to IBT-2 pin 1 (RPWM)
